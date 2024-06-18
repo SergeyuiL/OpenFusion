@@ -85,6 +85,7 @@ class BaseState(object):
         self.depth_buffer.append(depth)
         self.poses_buffer.append(extrinsic)
 
+    # bs=batch_size return bs query
     def get(self, bs=1):
         if len(self.rgb_buffer) < bs:
             return None, None, None
@@ -104,16 +105,16 @@ class BaseState(object):
         return self.poses[-1]
 
     def get_mesh(self, legacy=True):
-        mesh = self.world.extract_triangle_mesh()
+        mesh = self.world.extract_triangle_mesh()   # export world voxel to mesh
         return mesh.to_legacy() if legacy else mesh
 
     def get_pc(self, n=-1):
         if len(self.poses) < 1:
             return None, None
-        pcd = self.world.extract_point_cloud()
+        pcd = self.world.extract_point_cloud()  # convert voxel world to pointcloud
         points = pcd.point.positions.cpu().numpy()
         colors = pcd.point.colors.cpu().numpy()
-        if n > 0 and len(points) > n:
+        if n > 0 and len(points) > n:   # downsample n points idx from len(points)
             sample_idx = np.random.choice(len(points), n)
             points = points[sample_idx]
             colors = colors[sample_idx]
@@ -127,10 +128,10 @@ class BaseState(object):
         """
         pcd = self.world.extract_point_cloud().to_legacy()
         voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcd, voxel_size=grid_size)
-        ux, _, uz = pcd.get_max_bound()
+        ux, _, uz = pcd.get_max_bound() # get extents of pointcloud
         lx, _, lz = pcd.get_min_bound()
         x_ = np.arange(lx, ux, 0.1)
-        y_ = np.arange(camera_height-robot_height, camera_height-0.1, 0.05)
+        y_ = np.arange(camera_height-robot_height, camera_height-0.1, 0.05) # y-axis up Notice!!!
         z_ = np.arange(lz, uz, 0.1)
         x, y, z = np.meshgrid(x_, y_, z_, indexing='ij')
         queries = np.stack([x.flatten(), y.flatten(), z.flatten()], axis=1)
@@ -152,7 +153,7 @@ class BaseState(object):
         x_ = np.arange(*lims[0], 0.1)
         z_ = np.arange(*lims[1], 0.1)
         return (
-            bisect.bisect_right(z_, z),
+            bisect.bisect_right(z_, z), # find the appropriate index in the discretized grid ranges z_ and x_ for the given z and x values.
             bisect.bisect_right(x_, x),
         )
 
@@ -191,11 +192,12 @@ class BaseState(object):
         R = extrinsic[:3, :3].T
         coords =  (R @ xyz - R @ extrinsic[:3, 3:]).view(3, image_height, image_width).permute(1,2,0)
         mask = [(0 < depth) & (depth < depth_max)]
-        # TODO: check 0.05 offset for +y direction (up)
+        # TODO: check 0.05 offset for +y direction (up), not needed if poses if camera frame
         return coords[mask] + torch.tensor([[0,0.05,0]], device="cuda"), mask
 
     @staticmethod
     def get_points_in_fov(coords, extrinsic, intrinsic, image_width, image_height, depth_max):
+        # project points to image plane
         """
         Args:
             coords (o3c.Tensor): shape of (N, 3)
