@@ -108,11 +108,13 @@ Please refer to [this](deploy/README.md) for more details.
 If you find this work helpful, please consider citing our work as:
 
 ```bibtex
-@article{kashu2023openfusion,
-    title={Open-Fusion: Real-time Open-Vocabulary 3D Mapping and Queryable Scene Representation},
-    author={Kashu Yamazaki, Taisei Hanyu, Khoa Vo, Thang Pham, Minh Tran, Gianfranco Doretto, Anh Nguyen, Ngan Le},
-    journal={arXiv preprint arXiv:2310.03923},
-    year={2023}
+@inproceedings{yamazaki2024open,
+  title={Open-fusion: Real-time open-vocabulary 3d mapping and queryable scene representation},
+  author={Yamazaki, Kashu and Hanyu, Taisei and Vo, Khoa and Pham, Thang and Tran, Minh and Doretto, Gianfranco and Nguyen, Anh and Le, Ngan},
+  booktitle={2024 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages={9411--9417},
+  year={2024},
+  organization={IEEE}
 }
 ```
 
